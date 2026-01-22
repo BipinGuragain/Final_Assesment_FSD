@@ -1,41 +1,49 @@
 <?php
-
 include "../config/db.php";
 include "../includes/functions.php";
 
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $qty = sanitizeQuantity($_POST['quantity']);
+    $product_name = trim($_POST["product_name"]);
+    $category     = trim($_POST["category"]);
+    $quantity     = sanitizeQuantity($_POST["quantity"]);
+    $price        = sanitizePrice($_POST["price"]);
 
     $stmt = $conn->prepare(
         "INSERT INTO products (product_name, category, quantity, price)
-         VALUES (?,?,?,?)"
+         VALUES (?, ?, ?, ?)"
     );
+
     $stmt->bind_param(
         "ssid",
-        $_POST['product_name'],
-        $_POST['category'],
-        $qty,
-        $_POST['price']
+        $product_name,
+        $category,
+        $quantity,
+        $price
     );
+
     $stmt->execute();
 
+    header("Location: index.php");
+    exit;
 }
+
 include "../includes/header.php";
 ?>
 
 <form method="POST">
-    Product Name:<br>
-    <input type="text" name="product_name" required><br><br>
 
-    Category:<br>
-    <input type="text" name="category" required><br><br>
+    <label>Product Name</label>
+    <input type="text" name="product_name" required>
 
-    Quantity:<br>
-    <input type="number" min="0" name="quantity" required><br><br>
+    <label>Category</label>
+    <input type="text" name="category" required>
 
-    Price:<br>
-    <input type="number" step="0.01" name="price" required><br><br>
+    <label>Quantity</label>
+    <input type="number" name="quantity" min="0" required>
+
+    <label>Price</label>
+    <input type="number" name="price" step="0.01" min="0" required>
 
     <button type="submit">Save Product</button>
 </form>

@@ -1,19 +1,4 @@
-
-
-
-
-NO AJAX ADDED YET BTW.
-
-
-
-
-
-
-
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 session_start();
 include "../config/db.php";
 
@@ -26,9 +11,10 @@ if (isset($_POST['signup'])) {
     $password = trim($_POST['su_password']);
 
     if (empty($username) || empty($password)) {
-        $error = "All signup fields are required";
+        $error = "All fields are required";
     } else {
 
+        // Check if username exists
         $check = $conn->prepare("SELECT id FROM users WHERE username = ?");
         $check->bind_param("s", $username);
         $check->execute();
@@ -36,8 +22,8 @@ if (isset($_POST['signup'])) {
 
         if ($check->num_rows > 0) {
             $error = "Username already exists";
-        } else {
-            // Hash password
+        } else 
+        {
             $hashed = hash("sha256", $password);
 
             // Insert user
@@ -45,12 +31,45 @@ if (isset($_POST['signup'])) {
             $stmt->bind_param("ss", $username, $hashed);
             $stmt->execute();
 
-            $success = "Account created. You can now login.";
+            $success = "Account created.";
         }
     }
 }
 
+if (isset($_POST['login'])) {
 
+    $username = trim($_POST['li_username']);
+    $password = trim($_POST['li_password']);
+
+    if (empty($username) || empty($password)) {
+        $error = "All fields are required";
+    } else {
+
+        $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows === 1) {
+
+            $stmt->bind_result($id, $hashed_password);
+            $stmt->fetch();
+
+            if (hash("sha256", $password) === $hashed_password) {
+                $_SESSION['user_id'] = $id;
+                $_SESSION['username'] = $username;
+
+                header("Location: index.php");
+                exit();
+            } else {
+                $error = "Invalid login";
+            }
+
+        } else {
+            $error = "Invalid login";
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -60,7 +79,7 @@ if (isset($_POST['signup'])) {
 </head>
 <body>
 
-<h2>Inventory System - Login & Signup</h2>
+<h2>Login & Signup</h2>
 
 <?php if ($error): ?>
 <p style="color:red;"><?= htmlspecialchars($error) ?></p>
@@ -82,7 +101,9 @@ Password
 <input type="password" name="li_password" required>
 
 <button type="submit" name="login">Login</button>
+
 </form>
+
 <br>
 
 

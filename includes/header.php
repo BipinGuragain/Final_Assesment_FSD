@@ -5,11 +5,15 @@
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-<h2>📦Inventory & Stock Tracking System | GARIO👞 </h2>
-<?php if (isset($_SESSION['username'])): ?>
-<p>
-Logged in as <b><?= htmlspecialchars($_SESSION['username']) ?></b>
-<a href="logout.php">Logout</a>
-</p>
-<?php endif; ?>
+
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>Inventory & Stock Tracking System</h2>
+
+    <!-- LOGOUT BUTTON -->
+   <form method="POST" action="logout.php" class="logout-form">
+
+        <button type="submit">Logout</button>
+    </form>
+</div>
+
 <hr>

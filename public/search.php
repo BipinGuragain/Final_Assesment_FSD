@@ -1,58 +1,47 @@
 <?php
 include "../includes/auth.php";
 include "../config/db.php";
-include "../includes/header.php";
 
-// Check if search query exists
-if (!isset($_GET['q']) || empty($_GET['q'])) {
-    echo "<p>No search term provided.</p>";
-    include "../includes/footer.php";
-    exit();
+
+$q = isset($_GET['q']) ? trim($_GET['q']) : "";
+
+
+$stmt = $conn->prepare(
+    "SELECT id, product_name, category, quantity, price 
+     FROM products 
+     WHERE product_name LIKE ? 
+     OR category LIKE ?"
+);
+
+$search = "%" . $q . "%";
+$stmt->bind_param("ss", $search, $search);
+$stmt->execute();
+
+
+$stmt->bind_result($id, $product_name, $category, $quantity, $price);
+
+
+$found = false;
+
+while ($stmt->fetch()) {
+    $found = true;
+    echo "<tr>";
+    echo "<td>" . htmlspecialchars($product_name) . "</td>";
+    echo "<td>" . htmlspecialchars($category) . "</td>";
+   $color = ($quantity <= 10) ? "red" : "inherit";
+$weight = ($quantity <= 10) ? "bold" : "normal";
+
+echo "<td style='color:$color; font-weight:$weight;'>$quantity</td>";
+
+    echo "<td>" . $price . "</td>";
+    echo "<td>";
+    echo "<a href='edit.php?id=" . $id . "'>Edit</a> | ";
+    echo "<a href='delete.php?id=" . $id . "' onclick=\"return confirm('Delete this product?')\">Delete</a>";
+    echo "</td>";
+    echo "</tr>";
 }
 
-// Get search value safely
-$search = $conn->real_escape_string($_GET['q']);
-
-// SQL query
-$sql = "SELECT * FROM products 
-        WHERE product_name LIKE '%$search%' 
-        OR category LIKE '%$search%'";
-
-$result = $conn->query($sql);
+if (!$found) {
+    echo "<tr><td colspan='5'>No products found</td></tr>";
+}
 ?>
-
-<a href="index.php">← Back to Products</a>
-<br><br>
-
-<h3>Search Results for: <?= htmlspecialchars($search) ?></h3>
-
-<table border="1" style="border-collapse: collapse;">
-<tr>
-<th>Product</th><th>Category</th><th>Qty</th><th>Price</th><th>Action</th>
-</tr>
-
-<?php
-if ($result->num_rows>0):
-    while ($row = $result->fetch_assoc()):
-?>
-<tr>
-<td><?= htmlspecialchars($row['product_name']) ?></td>
-<td><?= htmlspecialchars($row['category']) ?></td>
-<td><?= $row['quantity'] ?></td>
-<td><?= $row['price'] ?></td>
-<td>
-<a href="edit.php?id=<?= $row['id'] ?>">Edit</a> |
-<a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('Delete this product?')">Delete</a>
-</td>
-</tr>
-<?php
-    endwhile;
-else:
-?>
-<tr>
-<td colspan="5">No products found</td>
-</tr>
-<?php endif; ?>
-</table>
-
-<?php include "../includes/footer.php"; ?>
