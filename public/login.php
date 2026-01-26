@@ -20,11 +20,7 @@ if (isset($_POST['signup'])) {
         $check->execute();
         $check->store_result();
 
-        if ($check->num_rows > 0) {
-            $error = "Username already exists";
-        } else 
-        {
-            $hashed = hash("sha256", $password);
+ 
 
             // Insert user
             $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
@@ -34,7 +30,7 @@ if (isset($_POST['signup'])) {
             $success = "Account created.";
         }
     }
-}
+
 
 if (isset($_POST['login'])) {
 
